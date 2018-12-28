@@ -36,7 +36,7 @@ public class FileUtils {
      * @param fileName didn't need to start with `/`
      * @return File
      */
-    public File findFile(String fileName){
+    public File findFile(String fileName) {
         File file = null;
         try {
             file = new File(currPath+fileName);
@@ -46,8 +46,7 @@ public class FileUtils {
         return file;
     }
 
-    public void readFile(File file)
-    {
+    public void readFile(File file) {
         int[] count = new int[255];
 
         String path = currPath+file.getName();
@@ -87,8 +86,7 @@ public class FileUtils {
         }
     }
 
-    public static Map<Character, Integer> sortByComparator(Map<Character, Integer> unsortMap, final boolean order)
-    {
+    private static Map<Character, Integer> sortByComparator(Map<Character, Integer> unsortMap, final boolean order) {
 
         List<Map.Entry<Character, Integer>> list = new LinkedList<>(unsortMap.entrySet());
 
@@ -123,7 +121,7 @@ public class FileUtils {
         return bytes;
     }
 
-    public void writeBinaryFile(String s, String fileName){
+    public void writeBinaryFile(String s, String fileName) {
         try{
             Path path = Paths.get(this.currPath+fileName);
             byte[] bytes = BinaryUtils.convertStringToBytes(s);
@@ -139,9 +137,5 @@ public class FileUtils {
         File folder = new File(currPath);
         File[] listOfFiles = folder.listFiles();
         return listOfFiles;
-    }
-
-    public String getCurrPath() {
-        return currPath;
     }
 }

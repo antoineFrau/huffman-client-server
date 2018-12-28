@@ -1,6 +1,5 @@
 package Server;
 
-import FilesManager.BinaryUtils;
 import FilesManager.FileUtils;
 
 import java.io.*;
@@ -19,76 +18,71 @@ public class Server implements Runnable{
     private FileUtils fu;
     private File[] listOfFiles;
 
-    public Server(int port, String path) {
-        this.fu = new FileUtils(path);
-        this.port = port;
-    }
-
     public Server() {
         this.fu = new FileUtils("ressource/files");
         this.port = 9999;
     }
 
-    public void start() throws IOException {
-        System.out.println("Starting the socket server at port:" + port);
+    private void start() throws IOException {
+        System.out.println("Server : \nStarting the socket server at port:" + port);
         serverSocket = new ServerSocket(port);
 
-        //Listen for clients. Block till one connects
+        // The client will only be able to ask for one file
+        // You will need to restart everything if you want to retry exchange
 
         System.out.println("Waiting for clients...");
         while (true) {
-            System.out.println("Waiting for client request");
-            //creating socket and waiting for client connection
+            // Creating socket and waiting for client connection
             Socket client = serverSocket.accept();
-            //A client has connected to this server. Send welcome message
+            // A client has connected to this server. Send welcome message
             sendWelcomeMessage(client);
-//          Use ObjectOutputStream and ObjectInputStream to send the dictionary
-//            https://stackoverflow.com/questions/27736175/how-to-send-receive-objects-using-sockets-in-java
-            BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(client.getInputStream()));
+            // Get the index of file choose by the client
+            BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
             int file = Integer.parseInt(reader.readLine());
+            // Generate the huffman tree
             Tree t = generateEverythingForFile(file);
+            // Send to the client the content of the file using bytes
             sendFileWithBytes(client);
+            // Send him the dictionary who links binary code to a letter.
             sendCodeToDecrypt(client, t);
         }
     }
 
     private void sendWelcomeMessage(Socket client) throws IOException {
+        // Using ObjectOutputStream for every type of content I send to the client
+        // We can't change between different type of Output communication protocol
         ObjectOutputStream dos = new ObjectOutputStream(client.getOutputStream());
-        dos.writeUTF("Bienvenue ! Voici les fichiers disponibles : ");
-        dos.writeUTF("\n");
-        dos.writeUTF(generateListOfFiles().toString());
+        dos.writeUTF("Bienvenue sur le serveur ! \nVoici les fichiers disponibles : \n" +
+                generateListOfFiles().toString());
         dos.flush();
     }
 
     private void sendFileWithBytes(Socket client) throws IOException {
+        // Using ObjectOutputStream for every type of content I send to the client
+        // We can't change between different type of Output communication protocol
         ObjectOutputStream dos = new ObjectOutputStream(client.getOutputStream());
-        FileInputStream fis = new FileInputStream(fu.getCurrPath()+"compressed-message.txt");
-        byte[] buffer = new byte[fu.readBinaryFile("compressed-message.txt").length];
-        int read;
-        fis.read(buffer);
-        dos.write(buffer);
-//        while ((read=fis.read(buffer)) > 0) {
-//            dos.write(buffer,0,read);
-//        }
+        dos.write(fu.readBinaryFile("compressed-message.txt"));
         dos.flush();
     }
 
     private void sendCodeToDecrypt(Socket client, Tree t) throws IOException {
+        // Using ObjectOutputStream for every type of content I send to the client
+        // We can't change between different type of Output communication protocol
         ObjectOutputStream dos = new ObjectOutputStream(client.getOutputStream());
         dos.writeObject(t.getCharWithCode());
         dos.flush();
     }
 
-
     private Tree generateEverythingForFile(int index){
         this.fu.readFile(this.listOfFiles[index]);
         Tree tree = new Tree(fu.getResult());
         StringBuilder cryptedMessage = encryptMessage(tree.getCharWithCode(), fu.getMessage());
+        // Generate the file with the text compressed (Bytes)
         fu.writeBinaryFile(cryptedMessage.toString(),"compressed-message.txt");
         return tree;
     }
 
+    /* Used to encrypt the text using the code<binaryString, Letter> */
     private StringBuilder encryptMessage(Map<String, Character> code, StringBuilder message){
         StringBuilder cryptedMessage = new StringBuilder();
         ArrayList<Character> listChar = new ArrayList<>(code.values());
@@ -101,7 +95,9 @@ public class Server implements Runnable{
         return cryptedMessage;
     }
 
+    /* Find all files available on the server except the compressed one */
     private StringBuilder generateListOfFiles() {
+
         listOfFiles = fu.getAllFiles();
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < listOfFiles.length; i++) {
