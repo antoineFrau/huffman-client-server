@@ -9,7 +9,13 @@
 
 ## Explain how does it work
 
-Start the Main file, and enter the number 0 then see the magic ! 
+Execute Main.java file, it will start the server Socket, and connect a client to it.
+
+Then you will be ask to enter a number, corresponding to the index of the file list send by the server.
+
+If nothing show and you need to enter the number just press 0, it will work anyway. Have Fun !
+
+(If you want a knew file just restart the program)
 
 ## TODO
 
